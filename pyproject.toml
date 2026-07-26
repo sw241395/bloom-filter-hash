@@ -1,0 +1,20 @@
+[project]
+name = "bloom-filter-hash"
+version = "0.1.0"
+description = "Using Bloom Filters, can we greatly reduce the number of password combinations to brute force"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bloom-filter2>=2.0.0",
+    "ipykernel>=7.2.0",
+    "tqdm>=4.69.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "pytest>=9.1.1",
+]
+
+[project.scripts]
+bloom-hash = "bloom_filter_hash.cli:main"

@@ -11,7 +11,9 @@ import string
 
 @pytest.mark.parametrize("hash_alg", ["sha256", "md5"])
 def test_train(hash_alg):
-    test_charset = set(string.ascii_letters + "0123456789")
+    test_charset = sorted(
+        list(set(string.ascii_letters + string.punctuation + "0123456789"))
+    )
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Create a small set of filters on only 2 chars
@@ -30,12 +32,13 @@ def test_train(hash_alg):
             assert metadata == {
                 "hash_alg": hash_alg,
                 "password_length": 2,
-                "max_elements": 1953,
+                "max_elements": 4465,
                 "error_rate": 0.1,
+                "filter_map": {char: f"{i}.bin" for i, char in enumerate(test_charset)},
             }
 
         # Assert filters have been created
-        for i in test_charset:
+        for i in range(len(test_charset)):
             assert os.path.exists(f"{tmpdirname}/{hash_alg}/2/{i}.bin")
 
         # Assert filters contain correct values
@@ -46,9 +49,9 @@ def test_train(hash_alg):
 
             for char in set(chars):
                 filter = BloomFilter(
-                    max_elements=1953,
-                    error_rate=0.1,
-                    filename=f"{tmpdirname}/{hash_alg}/2/{char}.bin",
+                    max_elements=metadata["max_elements"],
+                    error_rate=metadata["error_rate"],
+                    filename=f"{tmpdirname}/{hash_alg}/2/{metadata['filter_map'][char]}",
                 )
                 assert hash in filter
 

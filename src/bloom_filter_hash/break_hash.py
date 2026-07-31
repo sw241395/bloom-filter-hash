@@ -40,14 +40,12 @@ def break_hash(
 
         # Rebuild filters
         filters = {
-            Path(f).stem: BloomFilter(
+            char: BloomFilter(
                 max_elements=metadata["max_elements"],
                 error_rate=metadata["error_rate"],
-                filename=f,
+                filename=str(PurePath(pretrained_filter_metadata).parent / file),
             )
-            for f in glob.glob(
-                str(PurePath(pretrained_filter_metadata).parent / "*.bin")
-            )
+            for char, file in metadata["filter_map"].items()
         }
 
         if verbose:

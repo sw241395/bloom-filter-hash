@@ -21,15 +21,15 @@ def train(
 
     Args:
     """
-    # Checks
-    charset = set(charset)
-
+    # Sort the charset
+    charset = sorted(list(charset))
+    # Check hashing algorithm is valid
     if hash_alg not in hashlib.algorithms_available:
         raise ValueError(
             f'Hashing algorithm "{hash_alg}" not available, please choose one from `hashlib.algorithms_available`'
         )
     hash_alg = eval(f"hashlib.{hash_alg}")
-
+    # Check the error rate is between 0-1
     if not 0 < bloom_filter_error_rate < 1:
         raise ValueError("`bloom_filter_error_rate` must be between 0 and 1")
 
@@ -40,28 +40,27 @@ def train(
     # Calculate how many elements each filter must contain
     max_elements_in_filter = comb(len(charset) + password_length - 1, password_length)
 
-    # Create Filters
-    filters = {
-        char: BloomFilter(
+    # Create metadata that will be used to recreate the filters when breaking
+    # Also create the bloom filters
+    filter_map = dict()
+    filters = dict()
+    for i, char in enumerate(charset):
+        filter_map[char] = f"{i}.bin"
+        filters[char] = BloomFilter(
             max_elements=max_elements_in_filter,
             error_rate=bloom_filter_error_rate,
-            filename=p / f"{char}.bin",
+            filename=p / f"{i}.bin",
         )
-        for char in charset
-    }
 
-    # Create metadata that will be used to recreate the filters when breaking
+    metadata = {
+        "hash_alg": hash_alg().name,
+        "password_length": password_length,
+        "max_elements": max_elements_in_filter,
+        "error_rate": bloom_filter_error_rate,
+        "filter_map": filter_map,
+    }
     with open(p / "metadata.json", "w") as f:
-        json.dump(
-            {
-                "hash_alg": hash_alg().name,
-                "password_length": password_length,
-                "max_elements": max_elements_in_filter,
-                "error_rate": bloom_filter_error_rate,
-            },
-            f,
-            indent=4,
-        )
+        json.dump(metadata, f, indent=4)
 
     # Train filters
     for pwd in tqdm(

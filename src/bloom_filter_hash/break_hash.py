@@ -23,10 +23,14 @@ def break_hash(
     hash_alg = eval(f"hashlib.{hash_alg}")
 
     # Find all pretrained filters
-    path_to_filters = Path(path_to_filters)
-    for pretrained_filter_metadata in glob.iglob(
-        str(path_to_filters / "**/metadata.json"), recursive=True
-    ):
+    pretrained_filter_metadata_paths = list(
+        glob.iglob(str(Path(path_to_filters) / "**/metadata.json"), recursive=True)
+    )
+    if len(pretrained_filter_metadata_paths) == 0:
+        raise OSError(f"No `metadata.json` files can be found in {path_to_filters}")
+
+    # Loop through pretrained filters
+    for pretrained_filter_metadata in pretrained_filter_metadata_paths:
         # Open metadata
         with open(pretrained_filter_metadata) as json_file:
             metadata = json.load(json_file)

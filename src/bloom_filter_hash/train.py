@@ -22,6 +22,8 @@ def train(
     Args:
     """
     # Checks
+    charset = set(charset)
+
     if hash_alg not in hashlib.algorithms_available:
         raise ValueError(
             f'Hashing algorithm "{hash_alg}" not available, please choose one from `hashlib.algorithms_available`'

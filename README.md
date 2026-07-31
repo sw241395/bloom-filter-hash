@@ -91,5 +91,6 @@ Then to break a hash we check to see if the password has been seen in any of our
 * Write tests
 * Add to Pypi
 * Save some pretrained filters in a branch
+* Add method to try break multiples hashes at once
 * Have option to generate John The Ripper commands for brute forcing to utilize the efficiencies in John
 * Extend to custom hashing algorithms?

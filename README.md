@@ -88,7 +88,8 @@ This works by creating a family of filters.
 Then to break a hash we check to see if the password has been seen in any of our pre-created filters, therefore leaving us with a massively reduced charset to brute force through.
 
 ## TODO:
-* Write tests
+* Enable the ability to store punctuation as chars for the filters
+    * for example can't have a filter file called '/.bin'
 * Add to Pypi
 * Save some pretrained filters in a branch
 * Add method to try break multiples hashes at once

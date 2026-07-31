@@ -6,13 +6,14 @@ from bloom_filter2 import BloomFilter
 from pathlib import Path
 from tqdm.auto import tqdm
 from math import comb
+from os import PathLike
 
 
 def train(
     charset: set[str],
     password_length: int,
-    hash_alg: str = "sha256",  # : hashlib._hashlib.HASH = hashlib.sha256,
-    output_path: Path = Path("./pretrained_filters"),
+    hash_alg: str = "sha256",
+    output_path: str | PathLike = "./pretrained_filters",
     bloom_filter_error_rate: float = 0.1,
 ):
     """
@@ -31,7 +32,7 @@ def train(
         raise ValueError("`bloom_filter_error_rate` must be between 0 and 1")
 
     # Build folder path
-    p = output_path / hash_alg().name / str(password_length)
+    p = Path(output_path) / hash_alg().name / str(password_length)
     p.mkdir(parents=True, exist_ok=True)
 
     # Calculate how many elements each filter must contain

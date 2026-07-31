@@ -3,6 +3,7 @@ import itertools
 import json
 import hashlib
 
+from os import PathLike
 from bloom_filter2 import BloomFilter
 from pathlib import Path, PurePath
 from tqdm.auto import tqdm
@@ -11,7 +12,7 @@ from tqdm.auto import tqdm
 def break_hash(
     hash: str,
     hash_alg: str,
-    path_to_filters: Path = Path("./pretrained_filters"),
+    path_to_filters: str | PathLike[str] = "./pretrained_filters",
     verbose: bool = True,
 ):
     # Checks
@@ -22,8 +23,9 @@ def break_hash(
     hash_alg = eval(f"hashlib.{hash_alg}")
 
     # Find all pretrained filters
+    path_to_filters = Path(path_to_filters)
     for pretrained_filter_metadata in glob.iglob(
-        path_to_filters + "/**/metadata.json", recursive=True
+        str(path_to_filters / "**/metadata.json"), recursive=True
     ):
         # Open metadata
         with open(pretrained_filter_metadata) as json_file:

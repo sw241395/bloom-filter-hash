@@ -15,6 +15,27 @@ def break_hash(
     path_to_filters: str | PathLike[str] = "./pretrained_filters",
     verbose: bool = True,
 ):
+    """
+    Using a set of pre-created bloom filters, try to
+    reduce the work needed to brute force a hash.
+
+    Args:
+        hash (str):
+            The hash you want to break
+        hash_alg (str):
+            The hashing algorithm used to create the hash
+        path_to_filters (str or PathLike[str], Optional):
+            The file path to the pre-created filters.
+            It will also recurselvly search for "metadat.json"
+            Default is "./pretrained_filters"
+        verbose (bool):
+            Print out progress bars and progress updates.
+            Default is True
+
+    Returns:
+        Plain Text Password (str or None)
+            The plain text password from the hash
+    """
     # Checks
     if hash_alg not in hashlib.algorithms_available:
         raise ValueError(

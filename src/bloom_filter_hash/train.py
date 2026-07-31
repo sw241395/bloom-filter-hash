@@ -13,13 +13,33 @@ def train(
     charset: set[str],
     password_length: int,
     hash_alg: str = "sha256",
-    output_path: str | PathLike = "./pretrained_filters",
+    output_path: str | PathLike[str] = "./pretrained_filters",
     bloom_filter_error_rate: float = 0.1,
 ):
     """
     Build a set of Bloom Filters to check for password hashes.
 
     Args:
+        charset (set[str]):
+            The characters that will be used to create
+            the filters and to brute force
+
+        password_length (int):
+            The length of the passwords you want to generate using the provided chars
+
+        hash_alg (str):
+            The hashing algorithm used to create the filters
+            Default is "sha256"
+
+        output_path (str or PathLike[str]):
+            The output dir where to store the pre-created
+            bloom filters.
+            Default is "./pretrained_filters"
+
+        bloom_filter_error_rate (float):
+            The error rate for the bloom filters.
+            Must be between 0 and 1.
+            Default is 0.1
     """
     # Sort the charset
     charset = sorted(list(charset))

@@ -62,17 +62,17 @@ We have:
 
 Therefore in total you would need $62^6 * (32+6) \approx 2.15*10^{12}\ bytes \approx 2\ Terabytes$
 
-The approximate equivalent for storing all the hashes into a bloom filter is 
+The approximate equivalent for storing all the hashes into a bloom filter (with error rate of 1%) is 
 
 $$
-m = -\frac{n\ln p}{(\ln2)^2} = -\frac{62^6\ln 0.1}{(\ln2)^2} \approx 2.72 * 10^{11}\ bits \approx 34\ Gigabytes
+m = -\frac{n\ln p}{(\ln2)^2} = -\frac{62^6\ln 0.01}{(\ln2)^2} \approx 5.44 * 10^{11}\ bits \approx 68\ Gigabytes
 $$
 
 Where:
 * $n$ = Number of elements in the filter
-* $p$ = Desired false-positive rate (10%)
+* $p$ = Desired false-positive rate (1%)
 
-So as we can see the memory requirements is almost 2% of the full pre-computed hash list.
+So as we can see the memory requirements is almost 4% of the full pre-computed hash list.
 
 ### How it works
 
@@ -89,10 +89,8 @@ This works by creating a family of filters.
 Then to break a hash we check to see if the password has been seen in any of our pre-created filters, therefore leaving us with a massively reduced charset to brute force through.
 
 ## TODO:
-* Doc strings 
 * Add to Pypi
 * Save some pretrained filters in a branch
-* Example notebook 
 * Add method to try break multiples hashes at once
 * Have option to generate John The Ripper commands for brute forcing to utilize the efficiencies in John
 * Extend to custom hashing algorithms?

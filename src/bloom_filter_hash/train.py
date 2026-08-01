@@ -14,7 +14,7 @@ def train(
     password_length: int,
     hash_alg: str = "sha256",
     output_path: str | PathLike[str] = "./pretrained_filters",
-    bloom_filter_error_rate: float = 0.1,
+    bloom_filter_error_rate: float = 0.01,
 ):
     """
     Build a set of Bloom Filters to check for password hashes.
@@ -39,7 +39,7 @@ def train(
         bloom_filter_error_rate (float):
             The error rate for the bloom filters.
             Must be between 0 and 1.
-            Default is 0.1
+            Default is 0.01
     """
     # Sort the charset
     charset = sorted(list(charset))

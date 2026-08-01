@@ -33,7 +33,7 @@ def test_train(hash_alg):
                 "hash_alg": hash_alg,
                 "password_length": 2,
                 "max_elements": 4465,
-                "error_rate": 0.1,
+                "error_rate": 0.01,
                 "filter_map": {char: f"{i}.bin" for i, char in enumerate(test_charset)},
             }
 

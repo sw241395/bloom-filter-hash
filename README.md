@@ -5,6 +5,10 @@ Tain a set of Bloom Filters to help reduce the charset needed when brute forcing
 
 ## Install
 
+```bash
+pip install bloom-filter-hash
+```
+
 ## Train Filters
 
 Create the set of bloom filters for passwords of length 2 using the charset of lowercase letters. (Default hashing algorithm is sha256, and default location to store the filters is `./pretrained_filters`)
@@ -89,7 +93,6 @@ This works by creating a family of filters.
 Then to break a hash we check to see if the password has been seen in any of our pre-created filters, therefore leaving us with a massively reduced charset to brute force through.
 
 ## TODO:
-* Add to Pypi
 * Save some pretrained filters in a branch
 * Add method to try break multiples hashes at once
 * Have option to generate John The Ripper commands for brute forcing to utilize the efficiencies in John

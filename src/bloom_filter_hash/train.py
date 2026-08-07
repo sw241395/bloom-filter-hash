@@ -5,7 +5,6 @@ import json
 from bloom_filter2 import BloomFilter
 from pathlib import Path
 from tqdm.auto import tqdm
-from math import comb
 from os import PathLike
 
 
@@ -14,7 +13,7 @@ def train(
     password_length: int,
     hash_alg: str = "sha256",
     output_path: str | PathLike[str] = "./pretrained_filters",
-    bloom_filter_error_rate: float = 0.01,
+    bloom_filter_error_rate: float = 0.05,
 ):
     """
     Build a set of Bloom Filters to check for password hashes.
@@ -58,7 +57,9 @@ def train(
     p.mkdir(parents=True, exist_ok=True)
 
     # Calculate how many elements each filter must contain
-    max_elements_in_filter = comb(len(charset) + password_length - 1, password_length)
+    max_elements_in_filter = (len(charset) ** password_length) - (
+        (len(charset) - 1) ** password_length
+    )
 
     # Create metadata that will be used to recreate the filters when breaking
     # Also create the bloom filters
@@ -69,7 +70,7 @@ def train(
         filters[char] = BloomFilter(
             max_elements=max_elements_in_filter,
             error_rate=bloom_filter_error_rate,
-            filename=p / f"{i}.bin",
+            filename=(str(p / f"{i}.bin"), -1),  # Save as MMap
         )
 
     metadata = {

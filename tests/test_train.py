@@ -32,8 +32,8 @@ def test_train(hash_alg):
             assert metadata == {
                 "hash_alg": hash_alg,
                 "password_length": 2,
-                "max_elements": 4465,
-                "error_rate": 0.01,
+                "max_elements": 187,
+                "error_rate": 0.05,
                 "filter_map": {char: f"{i}.bin" for i, char in enumerate(test_charset)},
             }
 

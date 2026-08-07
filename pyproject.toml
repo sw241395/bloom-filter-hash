@@ -1,6 +1,6 @@
 [project]
 name = "bloom-filter-hash"
-version = "0.1.0"
+version = "0.1.1"
 description = "Using Bloom Filters, can we greatly reduce the number of password combinations to brute force"
 readme = "README.md"
 requires-python = ">=3.12"

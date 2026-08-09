@@ -52,6 +52,16 @@ password = break_hash(
 print(password)
 ```
 
+## Pre-trained Filters
+
+I have some pre-trained filters you can use for basic experimentation. I do plan on slowly adding more but my main limitation if how long they take to create as they require running though the whole list of possible passwords.
+
+You can download the pre-trained filter from HuggingFace [here](https://huggingface.co/sw241395/bloom-filter-hash)
+
+In the `./notebooks/example.ipynb` you can find how to download and use them.
+
+---
+
 ## Methodology
 
 ### Memory Requirements
@@ -93,7 +103,6 @@ This works by creating a family of filters.
 Then to break a hash we check to see if the password has been seen in any of our pre-created filters, therefore leaving us with a massively reduced charset to brute force through.
 
 ## TODO:
-* Save some pretrained filters in a branch
 * Add method to try break multiples hashes at once
 * Have option to generate HashCat commands for brute forcing to utilize the efficiencies in HashCat
 * Extend to custom hashing algorithms?

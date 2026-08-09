@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 from .train import train
-from .break_hash import break_hash
+from .break_hash import break_hash, hashcat
 
 
 def train_command(args):
@@ -26,6 +26,15 @@ def break_hash_command(args):
         print("Password Found: ", password)
     else:
         print("Password not found")
+
+
+def hashcat_command(args):
+    print(f"HashCat Commands: \n{'-' * 50}")
+    hashcat(
+        hash=args.hash,
+        hash_alg=args.hash_alg,
+        path_to_filters=args.filters_path,
+    )
 
 
 def main():
@@ -100,6 +109,29 @@ def main():
         help="Verbose",
     )
     break_parser.set_defaults(func=break_hash_command)
+
+    # Create subparser for HashCat commands
+    hashcat_parser = subparsers.add_parser(
+        "hashcat", help="Generate HashCat commands to break a hash"
+    )
+    hashcat_parser.add_argument(
+        "hash",
+        type=str,
+        help="The hash you want to break",
+    )
+    hashcat_parser.add_argument(
+        "--hash-alg",
+        type=str,
+        help="The hashing algorithm used to create the hash",
+    )
+    hashcat_parser.add_argument(
+        "--filters-path",
+        "-f",
+        type=Path,
+        default=Path("./pretrained_filters"),
+        help='Dir where all the pre-created bloom filters are stored (Default is "./pretrained_filters")',
+    )
+    hashcat_parser.set_defaults(func=hashcat_command)
 
     args = parser.parse_args()
     args.func(args)

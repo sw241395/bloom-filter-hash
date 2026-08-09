@@ -9,6 +9,30 @@ from pathlib import Path, PurePath
 from tqdm.auto import tqdm
 
 
+HASHCAT_HASH_TYPES = {
+    # 'blake2b':600,
+    # 'blake2s':31000,
+    "md5": 0,
+    # 'md5-sha1':4400,
+    "ripemd160": 6000,
+    "sha1": 100,
+    "sha224": 1300,
+    "sha256": 1400,
+    "sha384": 10800,
+    "sha3_224": 17300,
+    "sha3_256": 17400,
+    "sha3_384": 17500,
+    "sha3_512": 17600,
+    "sha512": 1700,
+    # 'sha512_224':,
+    # 'sha512_256':,
+    # 'shake_128':,
+    # 'shake_256':,
+    # 'sm3:':25000,
+}
+# The commented out methods either could not be an associated hash or did not work
+
+
 def break_hash(
     hash: str,
     hash_alg: str,
@@ -33,7 +57,7 @@ def break_hash(
             Default is True
 
     Returns:
-        Plain Text Password (str or None)
+        str or None
             The plain text password from the hash
     """
     # Checks
@@ -111,13 +135,10 @@ def get_charset(
             The file path to the pre-created filters.
             It will also recursively search for "metadata.json"
             Default is "./pretrained_filters"
-        verbose (bool):
-            Print out progress bars and progress updates.
-            Default is True
 
     Returns:
-        charset for each password length the hash hit on (dict)
-            The plain text password from the hash
+        dict
+            charset for each password length the hash hit on (dict)
     """
     # Checks
     if hash_alg not in hashlib.algorithms_available:
@@ -161,3 +182,46 @@ def get_charset(
             "charset_hit": set(k for k, v in filters.items() if hash in v),
         }
     return charset
+
+
+def hashcat(
+    hash: str,
+    hash_alg: str,
+    path_to_filters: str | PathLike[str] = "./pretrained_filters",
+    verbose: bool = True,
+):
+    """
+    Using a set of pre-created bloom filters, create a
+    HashCat command using a custom charset to utilize
+    the performance of HashCat.
+
+    Args:
+        hash (str):
+            The hash you want to break
+        hash_alg (str):
+            The hashing algorithm used to create the hash
+        path_to_filters (str or PathLike[str], Optional):
+            The file path to the pre-created filters.
+            It will also recursively search for "metadata.json"
+            Default is "./pretrained_filters"
+        verbose (bool):
+            Print out commands.
+            Default is True
+
+    Returns:
+        list[str]
+            HashCat command to break hash
+    """
+    if hash_alg not in HASHCAT_HASH_TYPES.keys():
+        raise ValueError("This method is not supported in HashCat")
+
+    charset = get_charset(hash=hash, hash_alg=hash_alg, path_to_filters=path_to_filters)
+    commands = []
+    for v in charset.values():
+        if len(v["charset_hit"]) == 0:
+            continue
+        command = f"hashcat -m {HASHCAT_HASH_TYPES[hash_alg]} -a 3 {hash} --custom-charset1 {''.join(v['charset_hit'])} {'?1' * v['password_length']}"
+        if verbose:
+            print(command)
+        commands.append(command)
+    return commands

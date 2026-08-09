@@ -104,5 +104,4 @@ Then to break a hash we check to see if the password has been seen in any of our
 
 ## TODO:
 * Add method to try break multiples hashes at once
-* Have option to generate HashCat commands for brute forcing to utilize the efficiencies in HashCat
 * Extend to custom hashing algorithms?

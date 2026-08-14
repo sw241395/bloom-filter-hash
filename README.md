@@ -27,6 +27,7 @@ from bloom_filter_hash import train
 train(
     "abcdefghijklmnopqrstuvwxyz",
     password_length=2,
+    # n_jobs=1, # Sets the number of multiprocessing process to run
 )
 ```
 
@@ -50,6 +51,27 @@ password = break_hash(
     'sha256', 
 )
 print(password)
+```
+
+Python is slow so rather than using python to break the hash you can get use the `hashcat` function to generate a HashCat command on the filter hits to utilize the efficiencies of HashCat to break the hash.
+
+### `hashcat` Command Line
+
+```bash
+bloom-hash hashcat fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603 --hash-alg sha256
+```
+
+### `hashcat` Python Package
+
+```python
+from bloom_filter_hash import hashcat
+
+command = hashcat(    
+    'fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603', 
+    hash_alg='sha256'
+)
+command
+# >>> hashcat -m 1400 -a 3 fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603 --custom-charset1 ba ?1?1
 ```
 
 ## Pre-trained Filters

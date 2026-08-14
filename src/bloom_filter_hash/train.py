@@ -1,11 +1,33 @@
 import hashlib
 import itertools
 import json
+import multiprocessing
 
 from bloom_filter2 import BloomFilter
 from pathlib import Path
 from tqdm.auto import tqdm
 from os import PathLike
+
+
+def _train_chunk(
+    filters: dict,
+    charset: set,
+    start_charset: list,
+    password_length: int,
+    hash_alg: hashlib._hashlib.HASH,
+    job_number: int,
+):
+    for start, pwd in tqdm(
+        itertools.product(
+            start_charset, itertools.product(charset, repeat=password_length - 1)
+        ),
+        total=len(start_charset) * (len(charset) ** (password_length - 1)),
+        desc=f"Job {job_number}",
+        position=job_number,
+    ):
+        hash = hash_alg("".join([start, *pwd]).encode()).hexdigest()
+        for char in set([start, *pwd]):
+            filters[char].add(hash)
 
 
 def train(
@@ -14,6 +36,7 @@ def train(
     hash_alg: str = "sha256",
     output_path: str | PathLike[str] = "./pretrained_filters",
     bloom_filter_error_rate: float = 0.05,
+    n_jobs: int = 1,
 ):
     """
     Build a set of Bloom Filters to check for password hashes.
@@ -39,6 +62,10 @@ def train(
             The error rate for the bloom filters.
             Must be between 0 and 1.
             Default is 0.01
+
+        n_jobs (int):
+            The number of cores to use when creating the filters.
+            Default is 1
     """
     # Sort the charset
     charset = sorted(list(charset))
@@ -51,6 +78,11 @@ def train(
     # Check the error rate is between 0-1
     if not 0 < bloom_filter_error_rate < 1:
         raise ValueError("`bloom_filter_error_rate` must be between 0 and 1")
+    # Check n_jobs
+    if n_jobs < 1:
+        raise ValueError("`n_jobs` must be a positive integer")
+    elif n_jobs > len(charset):
+        raise ValueError("`n_jobs` must not exceed the number of chars in the charset")
 
     # Build folder path
     p = Path(output_path) / hash_alg().name / str(password_length)
@@ -84,10 +116,40 @@ def train(
         json.dump(metadata, f, indent=4)
 
     # Train filters
-    for pwd in tqdm(
-        itertools.product(charset, repeat=password_length),
-        total=len(charset) ** password_length,
-    ):
-        hash = hash_alg("".join(pwd).encode()).hexdigest()
-        for char in set(pwd):
-            filters[char].add(hash)
+    if n_jobs == 1:
+        for pwd in tqdm(
+            itertools.product(charset, repeat=password_length),
+            total=len(charset) ** password_length,
+        ):
+            hash = hash_alg("".join(pwd).encode()).hexdigest()
+            for char in set(pwd):
+                filters[char].add(hash)
+    else:
+        # Split the charset into chunks
+        processes = []
+        for job_number, chunk in enumerate(
+            [
+                list(
+                    charset[
+                        i * len(charset) // n_jobs : (i + 1) * len(charset) // n_jobs
+                    ]
+                )
+                for i in range(n_jobs)
+            ]
+        ):
+            process = multiprocessing.Process(
+                target=_train_chunk,
+                args=(
+                    filters,
+                    charset,
+                    chunk,
+                    password_length,
+                    hash_alg,
+                    job_number,
+                ),
+            )
+            process.start()
+            processes.append(process)
+
+        for process in processes:
+            process.join()

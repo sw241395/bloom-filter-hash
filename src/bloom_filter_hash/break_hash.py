@@ -1,6 +1,7 @@
 import glob
 import itertools
 import json
+import math
 import hashlib
 
 from os import PathLike
@@ -83,32 +84,72 @@ def break_hash(
         if metadata["hash_alg"] != hash_alg().name:
             continue
 
-        # Rebuild filters
-        filters = {
-            char: BloomFilter(
-                max_elements=metadata["max_elements"],
-                error_rate=metadata["error_rate"],
-                filename=(
-                    str(PurePath(pretrained_filter_metadata).parent / file),
-                    -1,
-                ),  # Use MMap
-            )
-            for char, file in metadata["filter_map"].items()
-        }
+        if metadata.get("method") == "position":
+            # Rebuild filters
+            filters = dict()
+            for i in range(metadata["password_length"]):
+                filters[i] = dict()
+                for char, file_name in metadata["char_map"].items():
+                    filters[i][char] = BloomFilter(
+                        max_elements=metadata["max_elements"],
+                        error_rate=metadata["error_rate"],
+                        filename=(
+                            str(
+                                PurePath(pretrained_filter_metadata).parent
+                                / str(i)
+                                / f"{file_name}.bin"
+                            ),
+                            -1,
+                        ),  # Use MMap
+                    )
+            if verbose:
+                print(
+                    f"Running hash through filters for passwords of length {metadata['password_length']} over the charset: \n {list(metadata['char_map'].keys())}"
+                )
 
-        if verbose:
-            print(
-                f"Running hash through filters for passwords of length {metadata['password_length']} over the charset: \n {list(filters.keys())}"
-            )
+            # See what chars are potentially present in the password
+            hit_charset = {i: set() for i in filters.keys()}
+            for index, filter_dict in filters.items():
+                for char, f in filter_dict.items():
+                    if hash in f:
+                        hit_charset[index].add(char)
+            if verbose:
+                print(f"Hit bloom filter hits charset: {hit_charset}")
 
-        # See what chars are potentially present in the password
-        hit_charset = set(k for k, v in filters.items() if hash in v)
-        if verbose:
-            print(f"Hit bloom filter hits charset: {hit_charset}")
+            iterator = itertools.product(*(hit_charset[i] for i in hit_charset))
+            total = math.prod([len(v) for v in hit_charset.values()])
+
+        else:
+            # Rebuild filters
+            filters = {
+                char: BloomFilter(
+                    max_elements=metadata["max_elements"],
+                    error_rate=metadata["error_rate"],
+                    filename=(
+                        str(PurePath(pretrained_filter_metadata).parent / file),
+                        -1,
+                    ),  # Use MMap
+                )
+                for char, file in metadata["filter_map"].items()
+            }
+
+            if verbose:
+                print(
+                    f"Running hash through filters for passwords of length {metadata['password_length']} over the charset: \n {list(filters.keys())}"
+                )
+
+            # See what chars are potentially present in the password
+            hit_charset = set(k for k, v in filters.items() if hash in v)
+            if verbose:
+                print(f"Hit bloom filter hits charset: {hit_charset}")
+            iterator = itertools.product(
+                hit_charset, repeat=metadata["password_length"]
+            )
+            total = len(hit_charset) ** metadata["password_length"]
 
         for pwd in tqdm(
-            itertools.product(hit_charset, repeat=metadata["password_length"]),
-            total=len(hit_charset) ** metadata["password_length"],
+            iterator,
+            total=total,
             disable=not verbose,
         ):
             if hash_alg("".join(pwd).encode()).hexdigest() == hash:
@@ -117,6 +158,7 @@ def break_hash(
                 return "".join(pwd)
 
 
+# TODO: update to use positional filters
 def get_charset(
     hash: str,
     hash_alg: str,
@@ -184,6 +226,7 @@ def get_charset(
     return charset
 
 
+# TODO: update to use positional filters
 def hashcat(
     hash: str,
     hash_alg: str,

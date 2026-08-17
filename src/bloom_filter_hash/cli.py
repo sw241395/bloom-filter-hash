@@ -79,7 +79,10 @@ def main():
         default=0.1,
         help='The error rate for the bloom filters, how likely they are to return a false positive (Default is "0.1")',
     )
+    # TODO: Add n_jobs arg
     train_parser.set_defaults(func=train_command)
+
+    # TODO: Add parser for positional training
 
     # Create the parser for breaking hashes
     break_parser = subparsers.add_parser(

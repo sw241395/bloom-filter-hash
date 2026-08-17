@@ -11,6 +11,7 @@ def train_command(args):
         hash_alg=args.hash_alg,
         output_path=args.output,
         bloom_filter_error_rate=args.error_rate,
+        n_jobs=args.n_jobs,
     )
 
 
@@ -79,7 +80,13 @@ def main():
         default=0.1,
         help='The error rate for the bloom filters, how likely they are to return a false positive (Default is "0.1")',
     )
-    # TODO: Add n_jobs arg
+    train_parser.add_argument(
+        "--n-jobs",
+        "-j",
+        type=int,
+        default=1,
+        help="Number of cores to use when training the filters.",
+    )
     train_parser.set_defaults(func=train_command)
 
     # TODO: Add parser for positional training

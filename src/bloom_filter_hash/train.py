@@ -84,6 +84,8 @@ def train(
     elif n_jobs > len(charset):
         raise ValueError("`n_jobs` must not exceed the number of chars in the charset")
 
+    # TODO: Add warning if filters will be over written
+
     # Build folder path
     p = Path(output_path) / hash_alg().name / str(password_length)
     p.mkdir(parents=True, exist_ok=True)

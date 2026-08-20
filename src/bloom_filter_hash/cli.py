@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from .train import train
+from .train_positions import train_positions
 from .break_hash import break_hash, hashcat
 
 
@@ -12,6 +13,16 @@ def train_command(args):
         output_path=args.output,
         bloom_filter_error_rate=args.error_rate,
         n_jobs=args.n_jobs,
+    )
+
+
+def train_positions_command(args):
+    train_positions(
+        charset=set(list(args.charset)),
+        password_length=args.pwdlen,
+        hash_alg=args.hash_alg,
+        output_path=args.output,
+        bloom_filter_error_rate=args.error_rate,
     )
 
 
@@ -70,7 +81,7 @@ def main():
         "--output",
         "-o",
         type=Path,
-        default=Path("./pretrained_filters"),
+        default=Path("./pretrained_position_filters"),
         help='Output dir to put the bloom filters (Default is "./pretrained_filters")',
     )
     train_parser.add_argument(
@@ -89,7 +100,42 @@ def main():
     )
     train_parser.set_defaults(func=train_command)
 
-    # TODO: Add parser for positional training
+    # Create the parser for training positional filters
+    train_positions_parser = subparsers.add_parser(
+        "train-positions", help="Train a set of positional bloom filters"
+    )
+    train_positions_parser.add_argument(
+        "charset",
+        type=str,
+        help="All chars to use when creating the bloom filters",
+    )
+    train_positions_parser.add_argument(
+        "pwdlen",
+        type=int,
+        help="Length of the password you want to train",
+    )
+    train_positions_parser.add_argument(
+        "--hash-alg",
+        "-ha",  # -h is reserved for help
+        type=str,
+        default="sha256",
+        help='Hashing algorithm (Default is "sha256")',
+    )
+    train_positions_parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        default=Path("./pretrained_filters"),
+        help='Output dir to put the bloom filters (Default is "./pretrained_filters")',
+    )
+    train_positions_parser.add_argument(
+        "--error-rate",
+        "-e",
+        type=float,
+        default=0.1,
+        help='The error rate for the bloom filters, how likely they are to return a false positive (Default is "0.1")',
+    )
+    train_positions_parser.set_defaults(func=train_positions_command)
 
     # Create the parser for breaking hashes
     break_parser = subparsers.add_parser(

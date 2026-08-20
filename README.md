@@ -31,9 +31,31 @@ train(
 )
 ```
 
+## Train Positional Filters
+
+The basic set of filters we can create from the code above only tells us what chars are potentially in the password. We can extend this to create filters that tell us the potential char and index. Thus reducing the number of positions we need to try.
+
+#### Using Command Line
+
+```bash
+bloom-hash train-positions "abcdefghijklmnopqrstuvwxyz" 2
+
+```
+
+#### Using Python Package
+
+```python
+from bloom_filter_hash import train_positions
+
+train_positions(
+    "abcdefghijklmnopqrstuvwxyz",
+    password_length=2,
+)
+```
+
 ## Break Hash
 
-Break the hash for the following sha256 hashed password `ab` using our pre-created filters above.
+Break the hash for the following sha256 hashed password `ab` using our pre-created filters above. (Same method works for both normal and positions trained filters)
 
 ### Using Command Line
 

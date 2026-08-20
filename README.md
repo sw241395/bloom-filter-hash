@@ -75,7 +75,7 @@ password = break_hash(
 print(password)
 ```
 
-Python is slow so rather than using python to break the hash you can get use the `hashcat` function to generate a HashCat command on the filter hits to utilize the efficiencies of HashCat to break the hash.
+Python is slow so rather than using python to break the hash you can get use the `hashcat` function to generate a HashCat command on the filter hits to utilize the efficiencies of HashCat to break the hash. (Same method works for both normal and positions trained filters)
 
 ### `hashcat` Command Line
 

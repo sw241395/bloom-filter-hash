@@ -206,23 +206,54 @@ def get_charset(
         if metadata["hash_alg"] != hash_alg().name:
             continue
 
-        # Rebuild filters
-        filters = {
-            char: BloomFilter(
-                max_elements=metadata["max_elements"],
-                error_rate=metadata["error_rate"],
-                filename=(
-                    str(PurePath(pretrained_filter_metadata).parent / file),
-                    -1,
-                ),  # use MMAP
-            )
-            for char, file in metadata["filter_map"].items()
-        }
+        if metadata.get("method") == "position":
+            # Rebuild filters
+            filters = dict()
+            for i in range(metadata["password_length"]):
+                filters[i] = dict()
+                for char, file_name in metadata["char_map"].items():
+                    filters[i][char] = BloomFilter(
+                        max_elements=metadata["max_elements"],
+                        error_rate=metadata["error_rate"],
+                        filename=(
+                            str(
+                                PurePath(pretrained_filter_metadata).parent
+                                / str(i)
+                                / f"{file_name}.bin"
+                            ),
+                            -1,
+                        ),  # Use MMap
+                    )
 
-        charset[str(PurePath(pretrained_filter_metadata).parent)] = {
-            "password_length": metadata["password_length"],
-            "charset_hit": set(k for k, v in filters.items() if hash in v),
-        }
+            # See what chars are potentially present in the password
+            hit_charset = {i: set() for i in filters.keys()}
+            for index, filter_dict in filters.items():
+                for char, f in filter_dict.items():
+                    if hash in f:
+                        hit_charset[index].add(char)
+            charset[str(PurePath(pretrained_filter_metadata).parent)] = {
+                "password_length": metadata["password_length"],
+                "charset_hit": hit_charset,
+            }
+        else:
+            # Rebuild filters
+            filters = {
+                char: BloomFilter(
+                    max_elements=metadata["max_elements"],
+                    error_rate=metadata["error_rate"],
+                    filename=(
+                        str(PurePath(pretrained_filter_metadata).parent / file),
+                        -1,
+                    ),  # use MMAP
+                )
+                for char, file in metadata["filter_map"].items()
+            }
+
+            charset[str(PurePath(pretrained_filter_metadata).parent)] = {
+                "password_length": metadata["password_length"],
+                "charset_hit": set(k for k, v in filters.items() if hash in v),
+            }
+
     return charset
 
 
@@ -261,10 +292,25 @@ def hashcat(
     charset = get_charset(hash=hash, hash_alg=hash_alg, path_to_filters=path_to_filters)
     commands = []
     for v in charset.values():
-        if len(v["charset_hit"]) == 0:
+        if isinstance(v["charset_hit"], set):
+            if len(v["charset_hit"]) == 0:
+                continue
+            command = f"hashcat -m {HASHCAT_HASH_TYPES[hash_alg]} -a 3 {hash} --custom-charset1 {''.join(v['charset_hit'])} {'?1' * v['password_length']}"
+        elif isinstance(v["charset_hit"], dict):
+            if any(len(i) == 0 for i in v["charset_hit"].values()):
+                continue
+
+            command = f"hashcat -m {HASHCAT_HASH_TYPES[hash_alg]} -a 3 {hash}"
+            for index in sorted(v["charset_hit"]):
+                command += (
+                    f" --custom-charset{index + 1} {''.join(v['charset_hit'][index])}"
+                )
+            command += " " + "".join([f"?{i + 1}" for i in range(v["password_length"])])
+        else:
             continue
-        command = f"hashcat -m {HASHCAT_HASH_TYPES[hash_alg]} -a 3 {hash} --custom-charset1 {''.join(v['charset_hit'])} {'?1' * v['password_length']}"
+
         if verbose:
             print(command)
+
         commands.append(command)
     return commands

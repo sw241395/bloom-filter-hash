@@ -10,7 +10,8 @@ import string
 
 
 @pytest.mark.parametrize("hash_alg", ["sha256", "md5"])
-def test_train(hash_alg):
+@pytest.mark.parametrize("jobs", [1, 2])
+def test_train(hash_alg, jobs):
     test_charset = sorted(
         list(set(string.ascii_letters + string.punctuation + "0123456789"))
     )
@@ -22,6 +23,7 @@ def test_train(hash_alg):
             password_length=2,
             hash_alg=hash_alg,
             output_path=tmpdirname,
+            n_jobs=jobs,
         )
 
         # Assert metadata was created

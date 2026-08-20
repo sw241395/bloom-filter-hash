@@ -23,6 +23,7 @@ def train_positions_command(args):
         hash_alg=args.hash_alg,
         output_path=args.output,
         bloom_filter_error_rate=args.error_rate,
+        n_jobs=args.n_jobs,
     )
 
 
@@ -125,8 +126,8 @@ def main():
         "--output",
         "-o",
         type=Path,
-        default=Path("./pretrained_filters"),
-        help='Output dir to put the bloom filters (Default is "./pretrained_filters")',
+        default=Path("./pretrained_position_filters"),
+        help='Output dir to put the bloom filters (Default is "./pretrained_position_filters")',
     )
     train_positions_parser.add_argument(
         "--error-rate",
@@ -134,6 +135,13 @@ def main():
         type=float,
         default=0.1,
         help='The error rate for the bloom filters, how likely they are to return a false positive (Default is "0.1")',
+    )
+    train_positions_parser.add_argument(
+        "--n-jobs",
+        "-j",
+        type=int,
+        default=1,
+        help="Number of cores to use when training the filters.",
     )
     train_positions_parser.set_defaults(func=train_positions_command)
 
